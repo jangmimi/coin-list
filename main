@@ -1,0 +1,173 @@
+<%@page trimDirectiveWhitespaces="true"%>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f4f7;
+  color: #111;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+.coin-container {
+  width: 200px;
+  position: fixed;           /* 고정 */
+  right: 10px;
+  bottom: 10px;
+  background: #ffffff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 12px;       /* 둥글게 */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  z-index: 9999;             /* 다른 요소 위로 */
+  /* opacity: 0.4; */
+}
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 8px;
+  text-align: right;
+  border-bottom: 1px solid #eee;
+}
+th {
+  text-align: left;
+  background: #fafafa;
+}
+.up { color: red; }
+.down { color: blue; }
+.small {
+  font-size: 12px;
+  color: gray;
+  margin-top: 10px;
+}
+.dark {
+  background-color: #111827 !important;
+  color: #e5e7eb !important;
+}
+.dark .coin-container {
+  background: #1f2937;
+  border: 1px solid #374151;
+}
+.dark th {
+  background: #2d3748;
+}
+.dark td {
+  border-bottom: 1px solid #374151;
+}
+</style>
+
+</head>
+<body>
+
+<div class="coin-container">
+	<div style="margin-bottom:8px;">
+    <select id="exchangeSelect">
+      <option value="binance">Binance</option>
+      <option value="bybit">Bybit</option>
+      <option value="okx">OKX</option>
+    </select>
+  </div>
+	<div style="text-align:right; margin-bottom:10px;">
+    <button onclick="toggleTheme()" id="themeBtn">🌙 다크모드</button>
+	</div>
+  <table>
+    <!-- <tr><th>항목</th><th>USD 기준</th></tr> -->
+    <tr><td>BIT</td><td id="BTCUSDT">-</td></tr>
+    <tr><td>ETH</td><td id="ETHUSDT">-</td></tr>
+    <tr><td>SOL</td><td id="SOLUSDT">-</td></tr>
+    <tr><td>SHIBAINU</td><td id="SHIBUSDT">-</td></tr>
+    <tr><td>XRP</td><td id="XRPUSDT">-</td></tr>
+    <tr><td>ADA</td><td id="ADAUSDT">-</td></tr>
+    <tr><td>PEPE</td><td id="PEPEUSDT">-</td></tr>
+  </table>
+
+  <div class="small">
+    * 5초 자동 갱신
+  </div>
+</div>
+
+<script>
+	let currentExchange = "binance";
+	
+	$("#exchangeSelect").on("change", function() {
+	    currentExchange = $(this).val();
+	    loadPrices();
+	});
+
+
+
+  const coins = [
+    { symbol: "BTCUSDT", id: "BTCUSDT" },
+    { symbol: "ETHUSDT", id: "ETHUSDT" },
+    { symbol: "SOLUSDT", id: "SOLUSDT" },
+    { symbol: "ADAUSDT", id: "ADAUSDT" },
+    { symbol: "XRPUSDT", id: "XRPUSDT" },
+    { symbol: "1000PEPEUSDT", id: "PEPEUSDT" },
+    { symbol: "1000SHIBUSDT", id: "SHIBUSDT" }
+  ];
+  
+  let prevPrices = {};
+  
+  function loadPrices() {
+    coins.forEach(coin => {
+      fetch("https://fapi.binance.com/fapi/v1/ticker/price?symbol=" + coin.symbol)
+      .then(res => res.json())
+      .then(data => {
+  
+        if(!data.price) return;
+  
+        let price = parseFloat(data.price);
+        let el = document.getElementById(coin.id);
+  
+        if(prevPrices[coin.symbol]) {
+          if(price > prevPrices[coin.symbol]) {
+            el.className = "up";
+          } else if(price < prevPrices[coin.symbol]) {
+            el.className = "down";
+          }
+        }
+        
+        el.innerText = price.toLocaleString(undefined, {maximumFractionDigits: 10});
+        prevPrices[coin.symbol] = price;
+      }).catch(err => console.log(coin.symbol + " 에러"));
+    });
+  }
+  
+  setInterval(loadPrices, 5000);
+  window.onload = loadPrices;
+  
+  
+  $(function() {
+    if(localStorage.getItem("theme") === "dark") {
+      $("body").addClass("dark");
+      $("#themeBtn").text("☀️ 라이트모드");
+    }
+
+    $("#themeBtn").on("click", function() {
+      $("body").toggleClass("dark");
+
+      if($("body").hasClass("dark")) {
+          $(this).text("☀️ 라이트모드");
+          localStorage.setItem("theme", "dark");
+      } else {
+          $(this).text("🌙 다크모드");
+          localStorage.setItem("theme", "light");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
