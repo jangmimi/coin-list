@@ -49,6 +49,9 @@
 	  text-align: left;
 	  background: #fafafa;
 	}
+	.tbl-title th {
+    text-align: center;
+	}
 	.up { color: red; }
 	.down { color: blue; }
 	.small {
@@ -56,6 +59,8 @@
 	  color: gray;
 	  margin-top: 10px;
 	}
+	.rsi-high { color:#ff4d4f; font-weight:bold; }
+  .rsi-low { color:#00c853; font-weight:bold; }
 	.dark {
 	  background-color: #111827 !important;
 	  color: #e5e7eb !important;
@@ -83,27 +88,21 @@
 
 <div class="coin-container">
   <div style="text-align:right; margin-bottom:10px;">
-    <button onclick="toggleTheme()" id="themeBtn" class="btn btn-sm btn-secondary">
+    <button id="themeBtn" class="btn btn-sm btn-secondary">
               🌙 다크모드
     </button>
   </div>
+  
   <div style="margin-bottom:8px;">
 	  <select id="exchangeSelect" class="form-select form-select-sm">
-	    <option value="binance">Binance</option>
 	    <option value="bybit" selected>Bybit</option>
+	    <option value="binance">Binance</option>
 	    <option value="okx">OKX</option>
 	  </select>
   </div>
+  
   <table>
-    <!-- <tr><th>항목</th><th>USD 기준</th></tr> -->
-    <!-- <tr><td>BIT</td><td id="BTCUSDT">-</td></tr>
-    <tr><td>ETH</td><td id="ETHUSDT">-</td></tr>
-    <tr><td>SOL</td><td id="SOLUSDT">-</td></tr>
-    <tr><td>SHIBAINU</td><td id="SHIBUSDT">-</td></tr>
-    <tr><td>XRP</td><td id="XRPUSDT">-</td></tr>
-    <tr><td>ADA</td><td id="ADAUSDT">-</td></tr>
-    <tr><td>PEPE</td><td id="PEPEUSDT">-</td></tr> -->
-	  <tr>
+	  <tr class="tbl-title">
 	    <th>코인</th>
 	    <th>가격(USDT)</th>
 	    <th>원화</th>
@@ -120,7 +119,6 @@
 	    <td id="BTCUSDT_rsi">-</td>
 	    <td id="BTCUSDT_vol">-</td>
 		</tr>
-		
 		<tr>
 		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" class="coin-icon">
@@ -131,7 +129,6 @@
 	    <td id="ETHUSDT_rsi">-</td>
 	    <td id="ETHUSDT_vol">-</td>
 		</tr>
-		
 		<tr>
 		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/4128/small/solana.png" class="coin-icon">
@@ -142,7 +139,6 @@
 	    <td id="SOLUSDT_rsi">-</td>
 	    <td id="SOLUSDT_vol">-</td>
 		</tr>
-		
 		<tr>
 		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png" class="coin-icon">
@@ -153,7 +149,6 @@
       <td id="XRPUSDT_rsi">-</td>
       <td id="XRPUSDT_vol">-</td>
 		</tr>
-		
 		<tr>
 		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/975/small/cardano.png" class="coin-icon">
@@ -164,7 +159,6 @@
       <td id="ADAUSDT_rsi">-</td>
       <td id="ADAUSDT_vol">-</td>
 		</tr>
-		
 		<tr>
 		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg" class="coin-icon">
@@ -175,7 +169,6 @@
       <td id="PEPEUSDT_rsi">-</td>
       <td id="PEPEUSDT_vol">-</td>
 		</tr>
-		
 		<tr>
 		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/11939/small/shiba.png" class="coin-icon">
@@ -188,138 +181,355 @@
 		</tr>
   </table>
 
-  <div class="small">
+  <div class="small" style="text-align: right;">
     * 5초 자동 갱신
   </div>
 </div>
 
 <script>
-	let currentExchange = "binance";
-	
-	const coins = [
-	  { symbol: "BTCUSDT", id: "BTCUSDT" },
-	  { symbol: "ETHUSDT", id: "ETHUSDT" },
-	  { symbol: "SOLUSDT", id: "SOLUSDT" },
-	  { symbol: "ADAUSDT", id: "ADAUSDT" },
-	  { symbol: "XRPUSDT", id: "XRPUSDT" },
-	  { symbol: "1000PEPEUSDT", id: "PEPEUSDT" },
-	  { symbol: "1000SHIBUSDT", id: "SHIBUSDT" }
-	];
-	
-	let prevPrices = {};
-	
-	$(function(){
-	
-	  $("#exchangeSelect").on("change", function(){
-	    currentExchange = $(this).val();
-	    loadPrices();
-	  });
-	
-	  loadPrices();
-	  setInterval(loadPrices, 5000);
-	
+	$(function() {
+	  CoinApp.init();
 	});
-	
-	function calculateRSI(closes, period = 14){
-	  let gains = 0;
-	  let losses = 0;
 
-	  for(let i = closes.length - period; i < closes.length - 1; i++){
-	    let diff = closes[i+1] - closes[i];
-	    if(diff > 0) gains += diff;
-	    else losses -= diff;
-	  }
+  const CoinApp2 = {
+    currentExchange: "binance",
 
-	  let avgGain = gains / period;
-	  let avgLoss = losses / period;
+    coins: [
+      { symbol: "BTCUSDT", id: "BTCUSDT" },
+      { symbol: "ETHUSDT", id: "ETHUSDT" },
+      { symbol: "SOLUSDT", id: "SOLUSDT" },
+      { symbol: "ADAUSDT", id: "ADAUSDT" },
+      { symbol: "XRPUSDT", id: "XRPUSDT" },
+      { symbol: "1000PEPEUSDT", id: "PEPEUSDT" },
+      { symbol: "1000SHIBUSDT", id: "SHIBUSDT" }
+    ],
 
-	  if(avgLoss === 0) return 100;
+    prevPrices: {},
 
-	  let rs = avgGain / avgLoss;
-	  return 100 - (100 / (1 + rs));
-	}
-	
-	function loadPrices(){
-	  $.each(coins, function(i, coin){
-	
-	    let url = "";
-	    
-	    if(currentExchange === "binance"){
-	      url = "https://fapi.binance.com/fapi/v1/ticker/price?symbol=" + coin.symbol;
-	    }
-	
-	    if(currentExchange === "bybit"){
-	      url = "https://api.bybit.com/v5/market/tickers?category=linear&symbol=" + coin.symbol;
-	    }
-	
-	    if(currentExchange === "okx"){
-	      let okxSymbol = coin.symbol.replace("USDT","-USDT-SWAP");
-	      url = "https://www.okx.com/api/v5/market/ticker?instId=" + okxSymbol;
-	    }
-	
-	    $.ajax({
-	      url: url,
-	      method: "GET",
-	      success: function(data){
-	
-	        let price = 0;
-	
-	        // Binance
-	        if(currentExchange === "binance"){
-	          if(!data.price) return;
-	          price = parseFloat(data.price);
-	        }
-	
-	        // Bybit
-	        if(currentExchange === "bybit"){
-	          if(!data.result || !data.result.list.length) return;
-	          price = parseFloat(data.result.list[0].lastPrice);
-	        }
-	
-	        // OKX
-	        if(currentExchange === "okx"){
-	          if(!data.data || !data.data.length) return;
-	          price = parseFloat(data.data[0].last);
-	        }
-	
-	        let el = $("#" + coin.id);
-	
-	        if(prevPrices[coin.symbol]){
-	          if(price > prevPrices[coin.symbol]){
-	            el.removeClass("down").addClass("up");
-	          } else if(price < prevPrices[coin.symbol]){
-	            el.removeClass("up").addClass("down");
-	          }
-	        }
-	
-	        el.text(price.toLocaleString(undefined, {maximumFractionDigits: 8}));
-	        prevPrices[coin.symbol] = price;
-	      },
-	      error: function(){
-	        console.log(currentExchange + " 오류:", coin.symbol);
-	      }
-	    });
-	  });
-	}
-	
-  $(function() {
-    if(localStorage.getItem("theme") === "dark") {
-      $("body").addClass("dark");
-      $("#themeBtn").text("☀️ 라이트모드");
-    }
+    init: function() {
+      this.bindEvents();
+      this.loadPrices();
+      this.startInterval();
+      this.initTheme();
+    },
+    bindEvents: function() {
+      const self = this;
 
-    $("#themeBtn").on("click", function() {
+      $("#exchangeSelect").on("change", function() {
+        self.currentExchange = $(this).val();
+        self.loadPrices();
+      });
+
+      $("#themeBtn").on("click", function() {
+        self.toggleTheme();
+      });
+    },
+    startInterval: function() {
+      const self = this;
+      setInterval(function() {
+        self.loadPrices();
+      }, 5000);
+    },
+    loadPrices: function() {
+      const self = this;
+
+      $.each(this.coins, function(i, coin) {
+
+        let url = self.getApiUrl(coin);
+
+        $.ajax({
+          url: url,
+          method: "GET",
+          success: function(data) {
+
+            let price = self.extractPrice(data);
+
+            if(!price) return;
+
+            self.updatePrice(coin, price);
+          },
+          error: function() {
+            console.log(self.currentExchange + " 오류:", coin.symbol);
+          }
+        });
+      });
+    },
+    getApiUrl: function(coin) {
+      if(this.currentExchange === "binance") {
+        return "https://fapi.binance.com/fapi/v1/ticker/price?symbol=" + coin.symbol;
+      }
+
+      if(this.currentExchange === "bybit") {
+        return "https://api.bybit.com/v5/market/tickers?category=linear&symbol=" + coin.symbol;
+      }
+
+      if(this.currentExchange === "okx") {
+        let okxSymbol = coin.symbol.replace("USDT","-USDT-SWAP");
+        return "https://www.okx.com/api/v5/market/ticker?instId=" + okxSymbol;
+      }
+    },
+    extractPrice: function(data) {
+      if(this.currentExchange === "binance") {
+        return data.price ? parseFloat(data.price) : 0;
+      }
+
+      if(this.currentExchange === "bybit") {
+        return (data.result && data.result.list.length)
+          ? parseFloat(data.result.list[0].lastPrice)
+          : 0;
+      }
+
+      if(this.currentExchange === "okx") {
+        return (data.data && data.data.length)
+          ? parseFloat(data.data[0].last)
+          : 0;
+      }
+    },
+    updatePrice: function(coin, price) {
+      let el = $("#" + coin.id);
+
+      if(this.prevPrices[coin.symbol]) {
+
+        if(price > this.prevPrices[coin.symbol]) {
+          el.removeClass("down").addClass("up");
+        } else if(price < this.prevPrices[coin.symbol]) {
+          el.removeClass("up").addClass("down");
+        }
+
+      }
+
+      el.text(price.toLocaleString(undefined, { maximumFractionDigits: 8 }));
+      this.prevPrices[coin.symbol] = price;
+    },
+    initTheme: function() {
+      if(localStorage.getItem("theme") === "dark") {
+        $("body").addClass("dark");
+        $("#themeBtn").text("☀️ 라이트모드");
+      }
+    },
+    toggleTheme: function() {
       $("body").toggleClass("dark");
 
       if($("body").hasClass("dark")) {
-        $(this).text("☀️ 라이트모드");
+        $("#themeBtn").text("☀️ 라이트모드");
         localStorage.setItem("theme", "dark");
       } else {
-        $(this).text("🌙 다크모드");
+        $("#themeBtn").text("🌙 다크모드");
         localStorage.setItem("theme", "light");
       }
-    });
-  });
+    }
+  };
+  
+  const CoinApp = {
+    currentExchange: "bybit",
+
+    coins: [
+      { symbol: "BTCUSDT", id: "BTCUSDT", rsiId:"BTCUSDT_rsi", volId:"BTCUSDT_vol" },
+      { symbol: "ETHUSDT", id: "ETHUSDT", rsiId:"ETHUSDT_rsi", volId:"ETHUSDT_vol" },
+      { symbol: "SOLUSDT", id: "SOLUSDT", rsiId:"SOLUSDT_rsi", volId:"SOLUSDT_vol" },
+      { symbol: "ADAUSDT", id: "ADAUSDT", rsiId:"ADAUSDT_rsi", volId:"ADAUSDT_vol" },
+      { symbol: "XRPUSDT", id: "XRPUSDT", rsiId:"XRPUSDT_rsi", volId:"XRPUSDT_vol" },
+      { symbol: "1000PEPEUSDT", id: "PEPEUSDT", rsiId:"PEPEUSDT_rsi", volId:"PEPEUSDT_vol" },
+      { symbol: "SHIB1000USDT", id: "SHIBUSDT", rsiId:"SHIBUSDT_rsi", volId:"SHIBUSDT_vol" }
+    ],
+
+    prevPrices: {},
+
+    /* =======================
+       초기 실행
+    ======================== */
+    init: function() {
+      this.bindEvents();
+      this.loadPrices();          // 첫 가격 로딩
+      this.loadIndicatorsAll();   // 첫 RSI 로딩
+      this.startInterval();       // 인터벌 시작
+    },
+
+    bindEvents: function() {
+      const self = this;
+
+      $("#exchangeSelect").on("change", function(){
+        self.currentExchange = $(this).val();
+        self.loadPrices();
+        self.loadIndicatorsAll();
+      });
+    },
+
+    /* =======================
+       인터벌 분리
+    ======================== */
+    startInterval: function() {
+
+      const self = this;
+
+      // 🔵 가격은 5초마다
+      setInterval(function(){
+        self.loadPrices();
+      }, 5000);
+
+      // 🟡 RSI + 거래량은 30초마다
+      setInterval(function(){
+        self.loadIndicatorsAll();
+      }, 30000);
+
+    },
+
+    /* =======================
+       가격 로딩
+    ======================== */
+    loadPrices: function() {
+
+      const self = this;
+
+      $.each(this.coins, function(i, coin){
+
+        if(self.currentExchange !== "bybit") return;
+
+        $.ajax({
+          url: "https://api.bybit.com/v5/market/tickers",
+          method: "GET",
+          data: {
+            category: "linear",
+            symbol: coin.symbol
+          },
+          success: function(data){
+
+            if(!data.result || !data.result.list.length) return;
+
+            let price = parseFloat(data.result.list[0].lastPrice);
+
+            self.updatePrice(coin, price);
+          }
+        });
+
+      });
+
+    },
+
+    updatePrice: function(coin, price){
+
+      let el = $("#" + coin.id);
+
+      if(this.prevPrices[coin.symbol]){
+
+        if(price > this.prevPrices[coin.symbol]){
+          el.removeClass("down").addClass("up");
+        } else if(price < this.prevPrices[coin.symbol]){
+          el.removeClass("up").addClass("down");
+        }
+      }
+      
+      let digits = 3;
+
+      if(coin.symbol.includes("PEPE") || coin.symbol.includes("SHIB")){
+        digits = 6;
+      } else if(coin.symbol.includes("XRP") || coin.symbol.includes("ADA")){
+        digits = 4;
+      }
+
+      let formatted = price.toLocaleString(undefined, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      });
+
+      el.text(formatted);
+      //el.text(price.toLocaleString());
+      this.prevPrices[coin.symbol] = price;
+    },
+
+    /* =======================
+       RSI + 거래량 전체 호출
+    ======================== */
+    loadIndicatorsAll: function(){
+
+      const self = this;
+
+      $.each(this.coins, function(i, coin){
+        self.loadIndicators(coin);
+      });
+
+    },
+
+    /* =======================
+       1분봉 RSI + 거래량
+    ======================== */
+    loadIndicators: function(coin){
+
+      const self = this;
+
+      if(this.currentExchange !== "bybit") return;
+
+      $.ajax({
+        url: "https://api.bybit.com/v5/market/kline",
+        method: "GET",
+        data: {
+          category: "linear",
+          symbol: coin.symbol,
+          interval: "1",   // ✅ 1분봉
+          limit: 100
+        },
+        success: function(data){
+
+          if(!data.result || !data.result.list) return;
+
+          let list = data.result.list.slice().reverse();
+
+          let closes = list.map(c => parseFloat(c[4]));
+          let volumes = list.map(c => parseFloat(c[5]));
+
+          if(closes.length < 15) return;
+
+          let rsi = self.calculateRSI(closes, 14);
+          let volume = volumes[volumes.length - 1];
+
+          self.updateIndicators(coin, rsi, volume);
+        }
+      });
+
+    },
+
+    updateIndicators: function(coin, rsi, volume){
+
+      let rsiEl = $("#" + coin.rsiId);
+      let volEl = $("#" + coin.volId);
+
+      rsiEl.text(rsi.toFixed(2));
+      volEl.text(Number(volume).toLocaleString());
+
+      rsiEl.removeClass("rsi-high rsi-low");
+
+      if(rsi >= 70){
+        rsiEl.addClass("rsi-high");
+      } else if(rsi <= 30){
+        rsiEl.addClass("rsi-low");
+      }
+
+    },
+
+    /* =======================
+       RSI 계산
+    ======================== */
+    calculateRSI: function(closes, period){
+
+      let gains = 0;
+      let losses = 0;
+
+      for(let i = closes.length - period; i < closes.length - 1; i++){
+        let diff = closes[i+1] - closes[i];
+        if(diff > 0) gains += diff;
+        else losses -= diff;
+      }
+
+      let avgGain = gains / period;
+      let avgLoss = losses / period;
+
+      if(avgLoss === 0) return 100;
+
+      let rs = avgGain / avgLoss;
+
+      return 100 - (100 / (1 + rs));
+    }
+  };
 </script>
 
 </body>
