@@ -181,6 +181,16 @@
 		</tr>
 		<tr>
 		  <td>
+        <img src="https://assets.coingecko.com/coins/images/5/small/dogecoin.png" class="coin-icon">
+		    DOGE
+		  </td>
+		  <td id="DOGEUSDT">-</td>
+      <td id="DOGEUSDT_price" class="krw">-</td>
+      <td id="DOGEUSDT_rsi">-</td>
+      <td id="DOGEUSDT_vol">-</td>
+		</tr>
+		<tr>
+		  <td>
 		    <img src="https://assets.coingecko.com/coins/images/11939/small/shiba.png" class="coin-icon">
 		    SHIB
 		  </td>
@@ -211,6 +221,7 @@
       { symbol: "ADAUSDT", id: "ADAUSDT", rsiId:"ADAUSDT_rsi", volId:"ADAUSDT_vol" },
       { symbol: "XRPUSDT", id: "XRPUSDT", rsiId:"XRPUSDT_rsi", volId:"XRPUSDT_vol" },
       { symbol: "1000PEPEUSDT", id: "PEPEUSDT", rsiId:"PEPEUSDT_rsi", volId:"PEPEUSDT_vol" },
+	  { symbol: "DOGEUSDT", id: "DOGEUSDT", rsiId:"DOGEUSDT_rsi", volId:"DOGEUSDT_vol" },
       { symbol: "SHIB1000USDT", id: "SHIBUSDT", rsiId:"SHIBUSDT_rsi", volId:"SHIBUSDT_vol" }
     ],
     prevPrices: {},
@@ -333,7 +344,8 @@
       
       let digits = 3;
 
-      if(coin.symbol.includes("PEPE") || coin.symbol.includes("SHIB")){
+      if(coin.symbol.includes("PEPE") || coin.symbol.includes("SHIB")
+		|| coin.symbol.includes("DOGE")){
         digits = 6;
       } else if(coin.symbol.includes("XRP") || coin.symbol.includes("ADA")){
         digits = 4;
